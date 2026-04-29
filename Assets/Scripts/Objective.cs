@@ -1,0 +1,44 @@
+using UnityEngine;
+
+[RequireComponent(typeof(Collider2D))]
+public class Objective : MonoBehaviour
+{
+    [Tooltip("Tag do jogador que pode coletar o objetivo.")]
+    public string playerTag = "Player";
+
+    [Tooltip("Som opcional tocado ao coletar.")]
+    public AudioClip pickupSound;
+
+    private bool _collected;
+
+    private void Reset()
+    {
+        var col = GetComponent<Collider2D>();
+        if (col != null) col.isTrigger = true;
+    }
+
+    private void Start()
+    {
+        if (GameManager.instance != null)
+        {
+            GameManager.instance.RegisterObjective();
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (_collected) return;
+        if (!other.CompareTag(playerTag)) return;
+        if (GameManager.instance == null) return;
+
+        _collected = true;
+        GameManager.instance.CollectObjective();
+
+        if (pickupSound != null)
+        {
+            AudioSource.PlayClipAtPoint(pickupSound, transform.position);
+        }
+
+        Destroy(gameObject);
+    }
+}
