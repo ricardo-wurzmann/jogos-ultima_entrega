@@ -118,6 +118,9 @@ MonoBehaviour:
   wallMask:
     serializedVersion: 2
     m_Bits: 16777216
+  stuckCheckDuration: 0.45
+  stuckMinMoveDistance: 0.02
+  stuckRecoveryCooldown: 0.6
 --- !u!114 &7743490728152351817
 MonoBehaviour:
   m_ObjectHideFlags: 0

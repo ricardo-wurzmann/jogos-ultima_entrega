@@ -2,6 +2,14 @@ using UnityEngine;
 
 public class PatrolAI : MonoBehaviour
 {
+    private enum MoveMode
+    {
+        None,
+        Patrol,
+        Chase,
+        Investigate
+    }
+
     [Header("Patrol")]
     public Transform[] waypoints;
     public float speed = 3f;
@@ -12,6 +20,11 @@ public class PatrolAI : MonoBehaviour
     [Header("Hearing")]
     public LayerMask wallMask;
 
+    [Header("Stuck Recovery")]
+    public float stuckCheckDuration = 0.45f;
+    public float stuckMinMoveDistance = 0.02f;
+    public float stuckRecoveryCooldown = 0.6f;
+
     private int _currentWaypointIndex = 0;
     private bool _isWaiting = false;
     private bool _isChasing = false;
@@ -20,11 +33,17 @@ public class PatrolAI : MonoBehaviour
     private Rigidbody2D rb;
     private FieldOfView _fov;
     private Transform _player;
+    private Vector2 _lastPosition;
+    private bool _hadMoveCommand;
+    private MoveMode _lastMoveMode = MoveMode.None;
+    private float _stuckTimer;
+    private float _recoveringUntil = -Mathf.Infinity;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         _fov = GetComponent<FieldOfView>();
+        _lastPosition = rb.position;
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
@@ -36,8 +55,10 @@ public class PatrolAI : MonoBehaviour
     void FixedUpdate()
     {
         rb.linearVelocity = Vector2.zero;
+        UpdateStuckRecovery();
 
-        bool seesPlayer = _fov != null && _fov.canSeePlayer && _player != null;
+        bool isRecovering = Time.time < _recoveringUntil;
+        bool seesPlayer = !isRecovering && _fov != null && _fov.canSeePlayer && _player != null;
 
         if (seesPlayer)
         {
@@ -48,7 +69,7 @@ public class PatrolAI : MonoBehaviour
                 _isInvestigating = false;
                 StopAllCoroutines();
             }
-            MoveToTarget(_player.position, chaseSpeed);
+            MoveToTarget(_player.position, chaseSpeed, MoveMode.Chase);
             return;
         }
 
@@ -62,11 +83,14 @@ public class PatrolAI : MonoBehaviour
             }
         }
 
-        CheckForNoise();
+        if (!isRecovering)
+        {
+            CheckForNoise();
+        }
 
         if (_isInvestigating)
         {
-            MoveToTarget(_investigationTarget, speed);
+            MoveToTarget(_investigationTarget, speed, MoveMode.Investigate);
             if (Vector2.Distance(rb.position, _investigationTarget) < 0.5f)
             {
                 _isInvestigating = false;
@@ -105,7 +129,7 @@ public class PatrolAI : MonoBehaviour
     void MoveToWaypoint()
     {
         Transform target = waypoints[_currentWaypointIndex];
-        MoveToTarget(target.position, speed);
+        MoveToTarget(target.position, speed, MoveMode.Patrol);
 
         if (Vector2.Distance(rb.position, target.position) < 0.1f)
         {
@@ -113,9 +137,11 @@ public class PatrolAI : MonoBehaviour
         }
     }
 
-    void MoveToTarget(Vector2 targetPosition, float currentSpeed)
+    void MoveToTarget(Vector2 targetPosition, float currentSpeed, MoveMode moveMode)
     {
         Vector2 direction = (targetPosition - rb.position).normalized;
+        _hadMoveCommand = Vector2.Distance(rb.position, targetPosition) > 0.1f;
+        _lastMoveMode = _hadMoveCommand ? moveMode : MoveMode.None;
 
         if (direction != Vector2.zero)
         {
@@ -126,6 +152,96 @@ public class PatrolAI : MonoBehaviour
 
         Vector2 newPosition = Vector2.MoveTowards(rb.position, targetPosition, currentSpeed * Time.fixedDeltaTime);
         rb.MovePosition(newPosition);
+    }
+
+    void UpdateStuckRecovery()
+    {
+        if (!_hadMoveCommand || _lastMoveMode == MoveMode.None || _isWaiting)
+        {
+            ResetStuckTracking();
+            return;
+        }
+
+        float movedDistance = Vector2.Distance(rb.position, _lastPosition);
+        if (movedDistance < stuckMinMoveDistance)
+        {
+            _stuckTimer += Time.fixedDeltaTime;
+        }
+        else
+        {
+            _stuckTimer = 0f;
+        }
+
+        _lastPosition = rb.position;
+
+        if (_stuckTimer < stuckCheckDuration) return;
+
+        if (_lastMoveMode == MoveMode.Chase || _lastMoveMode == MoveMode.Investigate)
+        {
+            ResumePatrolAfterStuck();
+        }
+        else if (_lastMoveMode == MoveMode.Patrol)
+        {
+            SwitchToNextWaypoint();
+        }
+    }
+
+    void ResetStuckTracking()
+    {
+        _stuckTimer = 0f;
+        _hadMoveCommand = false;
+        _lastMoveMode = MoveMode.None;
+        _lastPosition = rb.position;
+    }
+
+    void ResumePatrolAfterStuck()
+    {
+        _isChasing = false;
+        _isInvestigating = false;
+        _isWaiting = false;
+        _recoveringUntil = Time.time + stuckRecoveryCooldown;
+        StopAllCoroutines();
+        ChooseNearestReachableWaypoint();
+        ResetStuckTracking();
+    }
+
+    void SwitchToNextWaypoint()
+    {
+        if (waypoints == null || waypoints.Length == 0) return;
+
+        _isWaiting = false;
+        StopAllCoroutines();
+        _currentWaypointIndex = (_currentWaypointIndex + 1) % waypoints.Length;
+        ResetStuckTracking();
+    }
+
+    void ChooseNearestReachableWaypoint()
+    {
+        if (waypoints == null || waypoints.Length == 0) return;
+
+        int bestIndex = _currentWaypointIndex;
+        float bestScore = Mathf.Infinity;
+
+        for (int i = 0; i < waypoints.Length; i++)
+        {
+            if (waypoints[i] == null) continue;
+
+            Vector2 toWaypoint = (Vector2)waypoints[i].position - rb.position;
+            float distance = toWaypoint.magnitude;
+            if (distance < Mathf.Epsilon) continue;
+
+            RaycastHit2D hit = Physics2D.Raycast(rb.position, toWaypoint.normalized, distance, wallMask);
+            bool blocked = hit.collider != null;
+            float score = blocked ? distance + 1000f : distance;
+
+            if (score < bestScore)
+            {
+                bestScore = score;
+                bestIndex = i;
+            }
+        }
+
+        _currentWaypointIndex = bestIndex;
     }
 
     System.Collections.IEnumerator WaitAndSwitch()
