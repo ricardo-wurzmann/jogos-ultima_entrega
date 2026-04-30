@@ -820,6 +820,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -40.634
       objectReference: {fileID: 0}
+    - target: {fileID: 7888313632149099388, guid: 8c0ae6216e2e19ec7ac5e0513c9c2283, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 3e3c4f8f06ea46e988ae2e30556f6bca, type: 3}
     - target: {fileID: 8522700466237255496, guid: 8c0ae6216e2e19ec7ac5e0513c9c2283, type: 3}
       propertyPath: m_Name
       value: Wall (1)

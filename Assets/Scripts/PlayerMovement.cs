@@ -22,6 +22,8 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        rb.constraints |= RigidbodyConstraints2D.FreezeRotation;
+        rb.angularVelocity = 0f;
     }
 
     public void Freeze(float duration)
