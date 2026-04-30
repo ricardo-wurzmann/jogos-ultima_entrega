@@ -121,6 +121,9 @@ MonoBehaviour:
   stuckCheckDuration: 0.45
   stuckMinMoveDistance: 0.02
   stuckRecoveryCooldown: 0.6
+  caughtPlayerSprite: {fileID: 21300000, guid: 8d7d30edae6a4292beaba77efa872f8e, type: 3}
+  caughtEnemySprite: {fileID: 21300000, guid: 52f2d918a1694772bf2863b728f3209b, type: 3}
+  captureRestartDelay: 0.8
 --- !u!114 &7743490728152351817
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
@@ -10,6 +11,8 @@ public class GameManager : MonoBehaviour
     public bool LevelCompleted { get; private set; }
 
     public bool HasAllObjectives => TotalObjectives > 0 && CollectedObjectives >= TotalObjectives;
+
+    private bool _isEnding;
 
     private void Awake()
     {
@@ -30,14 +33,14 @@ public class GameManager : MonoBehaviour
 
     public void CollectObjective()
     {
-        if (LevelCompleted) return;
+        if (_isEnding) return;
         CollectedObjectives++;
         Debug.Log($"Objetivo coletado ({CollectedObjectives}/{TotalObjectives}).");
     }
 
     public void TryFinishLevel()
     {
-        if (LevelCompleted) return;
+        if (_isEnding) return;
         if (!HasAllObjectives)
         {
             int faltam = Mathf.Max(0, TotalObjectives - CollectedObjectives);
@@ -46,12 +49,33 @@ public class GameManager : MonoBehaviour
         }
 
         LevelCompleted = true;
-        Debug.Log("Fase concluída!");
+        _isEnding = true;
+        Debug.Log("Fase concluida!");
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void GameOver()
     {
+        GameOver(0f);
+    }
+
+    public void GameOver(float reloadDelay)
+    {
+        if (_isEnding) return;
+        _isEnding = true;
+
+        if (reloadDelay <= 0f)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            return;
+        }
+
+        StartCoroutine(ReloadSceneAfterDelay(reloadDelay));
+    }
+
+    private IEnumerator ReloadSceneAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

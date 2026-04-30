@@ -25,6 +25,11 @@ public class PatrolAI : MonoBehaviour
     public float stuckMinMoveDistance = 0.02f;
     public float stuckRecoveryCooldown = 0.6f;
 
+    [Header("Capture")]
+    public Sprite caughtPlayerSprite;
+    public Sprite caughtEnemySprite;
+    public float captureRestartDelay = 0.8f;
+
     private int _currentWaypointIndex = 0;
     private bool _isWaiting = false;
     private bool _isChasing = false;
@@ -38,6 +43,7 @@ public class PatrolAI : MonoBehaviour
     private MoveMode _lastMoveMode = MoveMode.None;
     private float _stuckTimer;
     private float _recoveringUntil = -Mathf.Infinity;
+    private bool _captureTriggered;
 
     void Start()
     {
@@ -55,6 +61,8 @@ public class PatrolAI : MonoBehaviour
     void FixedUpdate()
     {
         rb.linearVelocity = Vector2.zero;
+        if (_captureTriggered) return;
+
         UpdateStuckRecovery();
 
         bool isRecovering = Time.time < _recoveringUntil;
@@ -256,7 +264,48 @@ public class PatrolAI : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            GameManager.instance.GameOver();
+            TriggerCapture(collision.gameObject);
+        }
+    }
+
+    private void TriggerCapture(GameObject player)
+    {
+        if (_captureTriggered) return;
+
+        _captureTriggered = true;
+        _isChasing = false;
+        _isInvestigating = false;
+        _isWaiting = false;
+        StopAllCoroutines();
+        rb.linearVelocity = Vector2.zero;
+
+        SpriteRenderer enemyRenderer = GetComponent<SpriteRenderer>();
+        if (enemyRenderer != null && caughtEnemySprite != null)
+        {
+            enemyRenderer.sprite = caughtEnemySprite;
+        }
+
+        SpriteRenderer playerRenderer = player.GetComponent<SpriteRenderer>();
+        if (playerRenderer != null && caughtPlayerSprite != null)
+        {
+            playerRenderer.sprite = caughtPlayerSprite;
+        }
+
+        PlayerMovement playerMovement = player.GetComponent<PlayerMovement>();
+        if (playerMovement != null)
+        {
+            playerMovement.enabled = false;
+        }
+
+        Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+        if (playerRb != null)
+        {
+            playerRb.linearVelocity = Vector2.zero;
+        }
+
+        if (GameManager.instance != null)
+        {
+            GameManager.instance.GameOver(captureRestartDelay);
         }
     }
 
