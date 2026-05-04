@@ -17,11 +17,11 @@ public class Objective : MonoBehaviour
         if (col != null) col.isTrigger = true;
     }
 
-    private void Start()
+    private void OnEnable()
     {
         if (GameManager.instance != null)
         {
-            GameManager.instance.RegisterObjective();
+            GameManager.instance.RegisterObjective(this);
         }
     }
 
@@ -32,7 +32,7 @@ public class Objective : MonoBehaviour
         if (GameManager.instance == null) return;
 
         _collected = true;
-        GameManager.instance.CollectObjective();
+        GameManager.instance.CollectObjective(this);
 
         if (pickupSound != null)
         {

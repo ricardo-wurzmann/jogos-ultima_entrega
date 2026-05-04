@@ -1,13 +1,17 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
-    public int TotalObjectives { get; private set; }
-    public int CollectedObjectives { get; private set; }
+    private readonly HashSet<Objective> _registeredObjectives = new HashSet<Objective>();
+    private readonly HashSet<Objective> _collectedObjectives = new HashSet<Objective>();
+
+    public int TotalObjectives => _registeredObjectives.Count;
+    public int CollectedObjectives => _collectedObjectives.Count;
     public bool LevelCompleted { get; private set; }
 
     public bool HasAllObjectives => TotalObjectives > 0 && CollectedObjectives >= TotalObjectives;
@@ -26,15 +30,29 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void RegisterObjective()
+    private void Start()
     {
-        TotalObjectives++;
+        Objective[] objectives = FindObjectsByType<Objective>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        foreach (Objective objective in objectives)
+        {
+            RegisterObjective(objective);
+        }
     }
 
-    public void CollectObjective()
+    public void RegisterObjective(Objective objective)
+    {
+        if (objective == null) return;
+        _registeredObjectives.Add(objective);
+    }
+
+    public void CollectObjective(Objective objective)
     {
         if (_isEnding) return;
-        CollectedObjectives++;
+        if (objective == null) return;
+
+        RegisterObjective(objective);
+        if (!_collectedObjectives.Add(objective)) return;
+
         Debug.Log($"Objetivo coletado ({CollectedObjectives}/{TotalObjectives}).");
     }
 
