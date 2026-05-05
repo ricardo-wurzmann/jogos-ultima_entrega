@@ -19,6 +19,7 @@ public class NoiseTrap : MonoBehaviour
             PlayerMovement pm = other.GetComponent<PlayerMovement>();
             if (pm != null) pm.Freeze(playerFreezeDuration);
 
+            VisualFeedback.TrapTriggered(transform.position);
             Destroy(gameObject);
         }
     }

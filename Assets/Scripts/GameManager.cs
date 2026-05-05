@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour
         LevelCompleted = true;
         _isEnding = true;
         Debug.Log("Fase concluida!");
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        StartCoroutine(ReloadSceneAfterDelay(0.45f));
     }
 
     public void GameOver()
@@ -90,10 +90,12 @@ public class GameManager : MonoBehaviour
 
         if (reloadDelay <= 0f)
         {
+            CameraJuice.Shake(0.16f, 0.25f);
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             return;
         }
 
+        CameraJuice.Shake(0.16f, 0.25f);
         StartCoroutine(ReloadSceneAfterDelay(reloadDelay));
     }
 

@@ -30,6 +30,11 @@ public class LevelExit : MonoBehaviour
         if (!other.CompareTag(playerTag)) return;
         if (GameManager.instance == null) return;
 
+        if (GameManager.instance.HasAllObjectives)
+        {
+            VisualFeedback.LevelCompleted(transform.position);
+        }
+
         GameManager.instance.TryFinishLevel();
     }
 }

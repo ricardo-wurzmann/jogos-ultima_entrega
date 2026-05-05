@@ -39,6 +39,7 @@ public class Objective : MonoBehaviour
             AudioSource.PlayClipAtPoint(pickupSound, transform.position);
         }
 
+        VisualFeedback.ObjectiveCollected(transform.position);
         Destroy(gameObject);
     }
 }

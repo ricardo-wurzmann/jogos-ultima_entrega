@@ -76,6 +76,7 @@ public class PatrolAI : MonoBehaviour
         if (seesPlayer && !_wasSeeingPlayer)
         {
             PlaySpottedSound();
+            VisualFeedback.PlayerSpotted(transform.position);
         }
         _wasSeeingPlayer = seesPlayer;
 
