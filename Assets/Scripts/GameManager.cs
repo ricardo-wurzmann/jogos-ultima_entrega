@@ -7,6 +7,10 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip backgroundMusic;
+    [SerializeField, Range(0f, 1f)] private float backgroundMusicVolume = 0.45f;
+
     private readonly HashSet<Objective> _registeredObjectives = new HashSet<Objective>();
     private readonly HashSet<Objective> _collectedObjectives = new HashSet<Objective>();
 
@@ -17,12 +21,14 @@ public class GameManager : MonoBehaviour
     public bool HasAllObjectives => TotalObjectives > 0 && CollectedObjectives >= TotalObjectives;
 
     private bool _isEnding;
+    private AudioSource _backgroundMusicSource;
 
     private void Awake()
     {
         if (instance == null)
         {
             instance = this;
+            PlayBackgroundMusic();
         }
         else
         {
@@ -95,5 +101,27 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    private void PlayBackgroundMusic()
+    {
+        if (backgroundMusic == null) return;
+
+        _backgroundMusicSource = GetComponent<AudioSource>();
+        if (_backgroundMusicSource == null)
+        {
+            _backgroundMusicSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        _backgroundMusicSource.clip = backgroundMusic;
+        _backgroundMusicSource.loop = true;
+        _backgroundMusicSource.playOnAwake = false;
+        _backgroundMusicSource.spatialBlend = 0f;
+        _backgroundMusicSource.volume = backgroundMusicVolume;
+
+        if (!_backgroundMusicSource.isPlaying)
+        {
+            _backgroundMusicSource.Play();
+        }
     }
 }

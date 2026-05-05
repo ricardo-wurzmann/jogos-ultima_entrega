@@ -157,4 +157,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Objective
   playerTag: Player
-  pickupSound: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 7d69a1ddf59a4c3cb0fd5d84fb916521, type: 3}

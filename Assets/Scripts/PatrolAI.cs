@@ -30,6 +30,10 @@ public class PatrolAI : MonoBehaviour
     public Sprite caughtEnemySprite;
     public float captureRestartDelay = 0.8f;
 
+    [Header("Audio")]
+    public AudioClip spottedSound;
+    [Range(0f, 1f)] public float spottedSoundVolume = 1f;
+
     private int _currentWaypointIndex = 0;
     private bool _isWaiting = false;
     private bool _isChasing = false;
@@ -44,6 +48,7 @@ public class PatrolAI : MonoBehaviour
     private float _stuckTimer;
     private float _recoveringUntil = -Mathf.Infinity;
     private bool _captureTriggered;
+    private bool _wasSeeingPlayer;
 
     void Start()
     {
@@ -67,6 +72,12 @@ public class PatrolAI : MonoBehaviour
 
         bool isRecovering = Time.time < _recoveringUntil;
         bool seesPlayer = !isRecovering && _fov != null && _fov.canSeePlayer && _player != null;
+
+        if (seesPlayer && !_wasSeeingPlayer)
+        {
+            PlaySpottedSound();
+        }
+        _wasSeeingPlayer = seesPlayer;
 
         if (seesPlayer)
         {
@@ -108,6 +119,12 @@ public class PatrolAI : MonoBehaviour
 
         if (waypoints.Length == 0 || _isWaiting) return;
         MoveToWaypoint();
+    }
+
+    private void PlaySpottedSound()
+    {
+        if (spottedSound == null) return;
+        AudioSource.PlayClipAtPoint(spottedSound, transform.position, spottedSoundVolume);
     }
 
     void CheckForNoise()
