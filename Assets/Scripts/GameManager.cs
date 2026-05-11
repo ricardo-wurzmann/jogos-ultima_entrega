@@ -7,6 +7,9 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
+    [Header("Scenes")]
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
+
     [Header("Audio")]
     [SerializeField] private AudioClip backgroundMusic;
     [SerializeField, Range(0f, 1f)] private float backgroundMusicVolume = 0.45f;
@@ -28,6 +31,7 @@ public class GameManager : MonoBehaviour
         if (instance == null)
         {
             instance = this;
+            Time.timeScale = 1f;
             PlayBackgroundMusic();
         }
         else
@@ -88,21 +92,24 @@ public class GameManager : MonoBehaviour
         if (_isEnding) return;
         _isEnding = true;
 
-        if (reloadDelay <= 0f)
-        {
-            CameraJuice.Shake(0.16f, 0.25f);
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-            return;
-        }
-
         CameraJuice.Shake(0.16f, 0.25f);
-        StartCoroutine(ReloadSceneAfterDelay(reloadDelay));
+        StartCoroutine(ShowGameOverAfterDelay(Mathf.Max(0f, reloadDelay)));
     }
 
     private IEnumerator ReloadSceneAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    private IEnumerator ShowGameOverAfterDelay(float delay)
+    {
+        if (delay > 0f)
+        {
+            yield return new WaitForSeconds(delay);
+        }
+
+        GameOverScreen.GetOrCreate(mainMenuSceneName).Show();
     }
 
     private void PlayBackgroundMusic()
