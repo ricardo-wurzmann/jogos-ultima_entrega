@@ -30,7 +30,7 @@ public class GameManager : MonoBehaviour
     public bool HasAllDeliveries => TotalDeliveries > 0 && CompletedDeliveries >= TotalDeliveries;
 
     private bool _isEnding;
-    private AudioSource _backgroundMusicSource;
+    private static AudioSource _persistentMusicSource;
 
     private void Awake()
     {
@@ -133,21 +133,26 @@ public class GameManager : MonoBehaviour
     {
         if (backgroundMusic == null) return;
 
-        _backgroundMusicSource = GetComponent<AudioSource>();
-        if (_backgroundMusicSource == null)
+        if (_persistentMusicSource == null)
         {
-            _backgroundMusicSource = gameObject.AddComponent<AudioSource>();
+            GameObject musicHost = new GameObject("PersistentBackgroundMusic");
+            DontDestroyOnLoad(musicHost);
+            _persistentMusicSource = musicHost.AddComponent<AudioSource>();
+            _persistentMusicSource.loop = true;
+            _persistentMusicSource.playOnAwake = false;
+            _persistentMusicSource.spatialBlend = 0f;
         }
 
-        _backgroundMusicSource.clip = backgroundMusic;
-        _backgroundMusicSource.loop = true;
-        _backgroundMusicSource.playOnAwake = false;
-        _backgroundMusicSource.spatialBlend = 0f;
-        _backgroundMusicSource.volume = backgroundMusicVolume;
+        _persistentMusicSource.volume = backgroundMusicVolume;
 
-        if (!_backgroundMusicSource.isPlaying)
+        if (_persistentMusicSource.clip != backgroundMusic)
         {
-            _backgroundMusicSource.Play();
+            _persistentMusicSource.clip = backgroundMusic;
+            _persistentMusicSource.Play();
+        }
+        else if (!_persistentMusicSource.isPlaying)
+        {
+            _persistentMusicSource.Play();
         }
     }
 }

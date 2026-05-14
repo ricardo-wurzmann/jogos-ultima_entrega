@@ -14,8 +14,13 @@ public class NoiseSource : MonoBehaviour
 
     [SerializeField] private TextMeshPro countdownText;
 
+    [Header("Audio")]
+    public AudioClip activationSound;
+    [Range(0f, 1f)] public float activationVolume = 1f;
+
     private float    _timeAlive = 0f;
     private Material _mat;
+    private bool     _activationSoundPlayed;
 
     public bool IsActive => _timeAlive >= delay && _timeAlive < delay + activeDuration;
 
@@ -35,6 +40,13 @@ public class NoiseSource : MonoBehaviour
         _timeAlive += Time.deltaTime;
         AtualizarTexto();
         AtualizarCor();
+
+        if (IsActive && !_activationSoundPlayed)
+        {
+            _activationSoundPlayed = true;
+            if (activationSound != null)
+                AudioSource.PlayClipAtPoint(activationSound, transform.position, activationVolume);
+        }
     }
 
     void AtualizarTexto()

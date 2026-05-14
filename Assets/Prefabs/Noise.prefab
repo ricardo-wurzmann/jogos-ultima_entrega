@@ -46,12 +46,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NoiseSource
   range: 3
-  delay: 3
+  delay: 1.5
   activeDuration: 1
   corEspera: {r: 0.5, g: 0.8, b: 1, a: 0.15}
   corAtivo: {r: 1, g: 0.78, b: 0, a: 0.38}
   segmentos: 48
   countdownText: {fileID: 4541036905518026338}
+  activationSound: {fileID: 8300000, guid: 14efb3c58fa2b1906ae1feedb9a6a0cd, type: 3}
+  activationVolume: 1
 --- !u!1 &8491014594982971252
 GameObject:
   m_ObjectHideFlags: 0

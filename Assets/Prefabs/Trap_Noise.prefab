@@ -51,3 +51,5 @@ MonoBehaviour:
   corAtivo: {r: 1, g: 0.78, b: 0, a: 0.38}
   segmentos: 48
   countdownText: {fileID: 0}
+  activationSound: {fileID: 8300000, guid: ee5c8deef8c3fa298ade118f9795046c, type: 3}
+  activationVolume: 1

@@ -141,9 +141,6 @@ public class PatrolAI : MonoBehaviour
             float dist = to.magnitude;
             if (dist > source.range) continue;
 
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, to.normalized, dist, wallMask);
-            if (hit.collider != null) continue;
-
             _isInvestigating = true;
             _investigationTarget = source.transform.position;
             _isWaiting = false;

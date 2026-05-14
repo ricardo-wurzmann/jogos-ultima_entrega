@@ -9,6 +9,9 @@ public class PlayerHUD : MonoBehaviour
     [SerializeField] private Image cooldownFill;
     [SerializeField] private TMP_Text objectiveText;
 
+    [Header("Stamina")]
+    [SerializeField] private Image staminaFill;
+
     void Start()
     {
         if (player == null)
@@ -34,6 +37,11 @@ public class PlayerHUD : MonoBehaviour
 
             bool noNoisesLeft = player.NoisesRemaining <= 0;
             cooldownFill.color = noNoisesLeft ? new Color(0.4f, 0.4f, 0.4f) : Color.white;
+        }
+
+        if (staminaFill != null)
+        {
+            staminaFill.fillAmount = player.StaminaRatio;
         }
 
         if (objectiveText != null && GameManager.instance != null)

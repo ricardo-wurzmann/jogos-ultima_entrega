@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class MainMenuController : MonoBehaviour
 {
-    [SerializeField] private string gameSceneName = "Game";
+    [SerializeField] private string gameSceneName = "Fase1";
 
     private void Start()
     {

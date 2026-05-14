@@ -134,7 +134,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a41c18eca3ced747a0bed4b723d7813, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementManger
-  speed: 4
+  speed: 2.2
+  sprintKey: 304
+  sprintSpeedMultiplier: 1.7
+  maxStamina: 100
+  staminaDrainPerSecond: 35
+  staminaRegenPerSecond: 4
+  staminaUnlockThreshold: 25
   noisePrefab: {fileID: 3215682601357565963, guid: 1ba077e976c636156be1731cbf3ebd22, type: 3}
   noiseCooldown: 2
   maxNoises: 3
@@ -247,7 +253,7 @@ MonoBehaviour:
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0.5
-  m_PointLightOuterRadius: 1
+  m_PointLightOuterRadius: 1.2
   m_ShapeLightParametricSides: 5
   m_ShapeLightParametricAngleOffset: 0
   m_ShapeLightParametricRadius: 1
