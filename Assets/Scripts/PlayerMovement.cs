@@ -19,6 +19,24 @@ public class PlayerMovement : MonoBehaviour
     public bool IsFrozen => _freezeTimer > 0f;
     public float NoiseCooldownRemaining => Mathf.Max(0f, noiseCooldown - (Time.time - _lastNoiseTime));
 
+    public string CarriedObjectiveId  { get; private set; } = "";
+    public string CarriedDisplayName  { get; private set; } = "";
+    public bool   IsCarrying => !string.IsNullOrEmpty(CarriedObjectiveId);
+
+    public void PickUpObjective(string id, string label)
+    {
+        CarriedObjectiveId = id;
+        CarriedDisplayName = label;
+    }
+
+    public bool TryDeliver(string requiredId)
+    {
+        if (CarriedObjectiveId != requiredId) return false;
+        CarriedObjectiveId = "";
+        CarriedDisplayName = "";
+        return true;
+    }
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();

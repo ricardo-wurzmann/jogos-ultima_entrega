@@ -11,14 +11,20 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioClip backgroundMusic;
     [SerializeField, Range(0f, 1f)] private float backgroundMusicVolume = 0.45f;
 
-    private readonly HashSet<Objective> _registeredObjectives = new HashSet<Objective>();
-    private readonly HashSet<Objective> _collectedObjectives = new HashSet<Objective>();
+    [Header("Progressão de fases")]
+    [Tooltip("Nome da próxima cena a carregar quando esta fase for concluída. Se vazio, recarrega a fase atual.")]
+    [SerializeField] private string nextSceneName;
+    [Tooltip("Tempo (s) antes de carregar a próxima fase após concluir.")]
+    [SerializeField] private float nextSceneDelay = 0.45f;
 
-    public int TotalObjectives => _registeredObjectives.Count;
-    public int CollectedObjectives => _collectedObjectives.Count;
-    public bool LevelCompleted { get; private set; }
+    private readonly HashSet<DeliveryPoint> _deliveryPoints     = new HashSet<DeliveryPoint>();
+    private readonly HashSet<DeliveryPoint> _completedDeliveries = new HashSet<DeliveryPoint>();
 
-    public bool HasAllObjectives => TotalObjectives > 0 && CollectedObjectives >= TotalObjectives;
+    public int  TotalDeliveries     => _deliveryPoints.Count;
+    public int  CompletedDeliveries => _completedDeliveries.Count;
+    public bool LevelCompleted      { get; private set; }
+
+    public bool HasAllDeliveries => TotalDeliveries > 0 && CompletedDeliveries >= TotalDeliveries;
 
     private bool _isEnding;
     private AudioSource _backgroundMusicSource;
@@ -38,44 +44,48 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Objective[] objectives = FindObjectsByType<Objective>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-        foreach (Objective objective in objectives)
-        {
-            RegisterObjective(objective);
-        }
+        DeliveryPoint[] dps = FindObjectsByType<DeliveryPoint>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        foreach (var dp in dps)
+            RegisterDeliveryPoint(dp);
     }
 
-    public void RegisterObjective(Objective objective)
+    public void RegisterDeliveryPoint(DeliveryPoint dp)
     {
-        if (objective == null) return;
-        _registeredObjectives.Add(objective);
+        if (dp == null) return;
+        _deliveryPoints.Add(dp);
     }
 
-    public void CollectObjective(Objective objective)
+    public void CompleteDelivery(DeliveryPoint dp)
     {
-        if (_isEnding) return;
-        if (objective == null) return;
-
-        RegisterObjective(objective);
-        if (!_collectedObjectives.Add(objective)) return;
-
-        Debug.Log($"Objetivo coletado ({CollectedObjectives}/{TotalObjectives}).");
+        if (_isEnding || dp == null) return;
+        RegisterDeliveryPoint(dp);
+        if (!_completedDeliveries.Add(dp)) return;
+        Debug.Log($"Entrega concluída ({CompletedDeliveries}/{TotalDeliveries}).");
     }
 
     public void TryFinishLevel()
     {
         if (_isEnding) return;
-        if (!HasAllObjectives)
+        if (!HasAllDeliveries)
         {
-            int faltam = Mathf.Max(0, TotalObjectives - CollectedObjectives);
-            Debug.Log($"Ainda faltam {faltam} objetivo(s) antes de sair.");
+            int faltam = TotalDeliveries - CompletedDeliveries;
+            Debug.Log($"Ainda faltam {faltam} entrega(s) antes de sair.");
             return;
         }
 
         LevelCompleted = true;
         _isEnding = true;
-        Debug.Log("Fase concluida!");
-        StartCoroutine(ReloadSceneAfterDelay(0.45f));
+        Debug.Log("Fase concluída!");
+        StartCoroutine(LoadNextSceneAfterDelay(nextSceneDelay));
+    }
+
+    private IEnumerator LoadNextSceneAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (!string.IsNullOrEmpty(nextSceneName))
+            SceneManager.LoadScene(nextSceneName);
+        else
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GameOver()
@@ -91,7 +101,7 @@ public class GameManager : MonoBehaviour
         if (reloadDelay <= 0f)
         {
             CameraJuice.Shake(0.16f, 0.25f);
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             return;
         }
 
@@ -102,7 +112,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator ReloadSceneAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private void PlayBackgroundMusic()

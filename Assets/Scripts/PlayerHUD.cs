@@ -38,18 +38,23 @@ public class PlayerHUD : MonoBehaviour
 
         if (objectiveText != null && GameManager.instance != null)
         {
-            int collected = GameManager.instance.CollectedObjectives;
-            int total = GameManager.instance.TotalObjectives;
+            int  concluidas = GameManager.instance.CompletedDeliveries;
+            int  total      = GameManager.instance.TotalDeliveries;
+            bool tudo       = GameManager.instance.HasAllDeliveries;
 
-            if (GameManager.instance.HasAllObjectives)
+            string carregando = player != null && player.IsCarrying
+                ? $"Carregando: <b>{player.CarriedDisplayName}</b>\n"
+                : "";
+
+            if (tudo)
             {
-                objectiveText.text = $"Objetivos: {collected}/{total} — vá até a saída!";
+                objectiveText.text  = $"{carregando}Entregas: {concluidas}/{total} — vá até a saída!";
                 objectiveText.color = Color.green;
             }
             else
             {
-                objectiveText.text = $"Objetivos: {collected}/{total}";
-                objectiveText.color = Color.white;
+                objectiveText.text  = $"{carregando}Entregas: {concluidas}/{total}";
+                objectiveText.color = player != null && player.IsCarrying ? Color.yellow : Color.white;
             }
         }
     }
